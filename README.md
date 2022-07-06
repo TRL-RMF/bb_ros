@@ -1,5 +1,10 @@
 # bb_ros
 
+Source noetic
+Add this file into your workspace/src 
+build file
+Source workspace
+
 How to run the code:
 
 1. roscore
