@@ -32,7 +32,7 @@ int sensorStateL = 2, sensorStateR = 2, sensorState = 2;
 
 int position_state = 2, dock_state = 2;
 
-int x = 0;
+int start_state = 0;
 
 void messageDown()
 {
@@ -66,55 +66,22 @@ void setup()
 
 void loop()
 {
-  if ( x == 0)
+  if ( start_state == 0)
   {
     while (!Serial);
     Serial.println("Step 1: Introduce, Enter your input for caato arm:");
-    x = 1;
+    start_state = 1;
   }
 
   //arm_status_msg.data = 0; //1 is up, 0 is down
   arm_status_msg.data = position_state;
   arm_status.publish(&arm_status_msg);
 
-  //trolley_dock_status_msg.data = 0; //1 not docked, 0 is docked
+  //trolley_dock_status_msg.data = 0; //1 docked, 0 is not docked
   trolley_dock_status_msg.data = dock_state;
   trolley_dock_status.publish(&trolley_dock_status_msg);
   nh.spinOnce();
   delay(100);
-
-
-  //  if (Serial.available() == 1) {
-  //
-  //
-  //    user_input = Serial.parseInt();
-
-  //    Serial.print("Step 2: Input from user, user input is: ");
-  //    Serial.println(user_input);
-  //  if (Serial.available() == 1) {
-  //
-  //
-  //    user_input = Serial.parseInt();
-  //
-  //    Serial.print("Step 2: Input from user, user input is: ");
-  //    Serial.println(user_input);
-  //
-  //    if (user_input == 2) //move up
-  //    {
-  //      Serial.println("Step 3: Checking if condition for input, hello 2");
-  //      messageUP();
-  //    }
-  //    else if (user_input == 1) //move down
-  //    {
-  //      Serial.print("Step 3: Checking if condition for input,hello 1");
-  //      messageDown();
-  //    }
-  //    else if (user_input == 0)
-  //    {
-  //      messageBR();
-  //    }
-  //  }
-
 }
 
 void messageUP()
@@ -146,21 +113,21 @@ void Motor_Forward(int Speed) {
     if (UP == 0)
     {
       Motor_Brake();
-      x = 0;
+      start_state = 0;
       delay(100);
       check_bb();
       if (sensorState == 0) {
         Serial.println("Docked");
         dock_state = 1;
+        break;
       }
       else {
         Serial.println("Not Docked");
         messageDown();
         dock_state = 0;
+        break;
       }
-
       break;
-
     }
   }
 }
@@ -177,7 +144,7 @@ void Motor_Backward(int Speed) {
     if (DOWN == 0)
     {
       Motor_Brake();
-      x = 0;
+      start_state = 0;
       dock_state = 0;
       break;
     }
@@ -230,10 +197,11 @@ void callback_srv(const SetBool::Request & req, SetBool::Response & res) {
   if (req.data)
   {
     messageUP();
+    check_bb();
     if (dock_state == 1)
     {
       res.success = true;
-      res.message = "moved upwards";
+      res.message = "dock successful";
       return;
     }
     else
